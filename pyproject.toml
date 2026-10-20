@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hotjass"
+version = "0.9.0"
+description = "0-D/1-D physics of neutral-beam-driven tokamak plasmas: power and particle balance, beam deposition and orbit loss, fusion rates, NBCD and bootstrap current"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Eugenia Dlougach"}]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Repository = "https://github.com/EDlougach/hotjass"
+
+[tool.setuptools]
+packages = ["hotjass"]
+py-modules = ["hotjass_core"]

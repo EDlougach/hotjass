@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+# LaTeX build artifacts (the manual PDF itself is tracked)
+_markdown_*/
+*.aux
+*.log
+*.out
+*.toc
