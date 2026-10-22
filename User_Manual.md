@@ -1,22 +1,21 @@
-# HI-Jass User Manual
+# hotjass Physics Manual
 
-## Running the application
+Physics models of the `hotjass` package (github.com/EDlougach/hotjass): power and
+particle balance, beam deposition and orbit loss, fusion, current drive. The package
+is used by two applications:
 
-### Linux
+- **HOT-JASS** (web app, github.com/EDlougach/HOT-JASS): `panel serve app.py --show`
+  after the set-up in its README. Advanced users can call the same functions from
+  their own scripts; see `workflows/README.md` there.
+- **HI-Jass** (desktop app): `./run_hi_jass.sh` on Linux, `run_hi_jass.bat` on Windows.
+  The launcher creates the virtual environment, installs the dependencies and starts
+  the GUI.
 
-```bash
-./run_hi_jass.sh
-```
+Tab and dialog names in this manual (Dashboard, Scan, Summary, Assumptions, ...) are
+those of the HI-Jass desktop app; the HOT-JASS web app uses the same inputs and models
+with its own layout. Sections that describe HOT-JASS-only features say so.
 
-### Windows
-
-Double-click `run_hi_jass.bat`, or run:
-
-```text
-.\run_hi_jass.bat
-```
-
-The launcher creates the virtual environment, installs the dependencies, and starts the GUI.
+To use the package directly: `pip install "hotjass @ git+https://github.com/EDlougach/hotjass@v0.9.0"`.
 
 ## Default NBI configuration
 
@@ -1347,17 +1346,19 @@ chosen independently. When a physics-based scaling is selected the manual
 `tauE,e` / `tauE,i` inputs are ignored, and the Summary sheet reports the
 computed value (or its range across a scan) instead.
 
-The physics-based scalings below all use the same loss power
+The physics-based scalings below all use the same auxiliary heating power
 
 $$
-P_{\mathrm{loss}} = \sum_j P_{\mathrm{useful},j}
-                  + P_{\mathrm{aux},e} + P_{\mathrm{aux},i},
+P_{\mathrm{aux}} = P_{NB} + P_{ECRH} + P_{ICRH}
+                  = \sum_j P_{\mathrm{useful},j} + P_{\mathrm{aux},e} + P_{\mathrm{aux},i},
 $$
 
-i.e. the captured, post-orbit, post-charge-exchange beam power plus the
-prescribed auxiliary (ECRH, ICRH) heating. Fusion alpha heating is not included
-in $P_{\mathrm{loss}}$ (it is closed by an outer fixed-point and is not known
-when $\tau_E$ is evaluated). None of these depend on $T_e$ or $T_i$, so each is
+where $P_{NB}=\sum_j P_{\mathrm{useful},j}$ is the absorbed beam power: captured, after
+first-orbit, charge-exchange and delayed orbit loss. Fusion alpha heating is not included
+in $P_{\mathrm{aux}}$ (it is closed by an outer fixed-point and is not known
+when $\tau_E$ is evaluated). The original papers call this power $P_{\mathrm{loss}}$
+(IPB98) or $P_{\mathrm{heat}}$ (Kaye); in steady state ($dW/dt=0$) the two are the same,
+and HOT-JASS labels it $P_{\mathrm{aux}}$ in all three formulas. None of these depend on $T_e$ or $T_i$, so each is
 evaluated once.
 
 ### Confinement enhancement
@@ -1385,11 +1386,11 @@ The ITER Physics Basis ELMy H-mode scaling (ITER Physics Basis, *Nucl. Fusion*
 
 $$
 \tau_E = 0.0562\;
-I_p^{0.93}\,B_t^{0.15}\,n_{19}^{0.41}\,P_{\mathrm{loss}}^{-0.69}\,
+I_p^{0.93}\,B_t^{0.15}\,n_{19}^{0.41}\,P_{\mathrm{aux}}^{-0.69}\,
 R_0^{1.97}\,\kappa_a^{0.78}\,\varepsilon^{0.58}\,M_{\mathrm{eff}}^{0.19}
 $$
 
-with $I_p$ in MA, $B_t$ in T, $P_{\mathrm{loss}}$ in MW, $R_0$ and $a$ in m,
+with $I_p$ in MA, $B_t$ in T, $P_{\mathrm{aux}}$ in MW, $R_0$ and $a$ in m,
 $n_{19}=n_{e0}/10^{19}\,\mathrm{m^{-3}}$, $\varepsilon=a/R_0$,
 $\kappa_a=\kappa$, and $M_{\mathrm{eff}}=2x_D+3x_T$ the mass-weighted ion mass
 number. Selecting *IPB98(y,2) ELMy H-mode* uses it for both channels
@@ -1408,10 +1409,10 @@ An NSTX low-aspect-ratio (spherical tokamak) L-mode global fit
 
 $$
 \tau_E = 4.73\times10^{-4}\;
-I_p^{1.01}\,B_t^{0.70}\,n_e^{-0.07}\,P_{\mathrm{loss}}^{-0.37}
+I_p^{1.01}\,B_t^{0.70}\,n_e^{-0.07}\,P_{\mathrm{aux}}^{-0.37}
 $$
 
-with $I_p$ in A, $B_t$ in T, $n_e$ in $\mathrm{m^{-3}}$, $P_{\mathrm{loss}}$ in W
+with $I_p$ in A, $B_t$ in T, $n_e$ in $\mathrm{m^{-3}}$, $P_{\mathrm{aux}}$ in W
 and $\tau_E$ in s. Selecting *Kaye NSTX L-mode* uses it for both channels
 ($\tau_{E,e}=\tau_{E,i}$).
 
@@ -1424,15 +1425,15 @@ The H-mode counterpart of the previous fit: an NSTX low-aspect-ratio
 
 $$
 \tau_E = 4.69\times10^{-9}\;
-I_p^{0.57}\,B_t^{1.08}\,n_e^{0.44}\,P_{\mathrm{loss}}^{-0.73}
+I_p^{0.57}\,B_t^{1.08}\,n_e^{0.44}\,P_{\mathrm{aux}}^{-0.73}
 $$
 
-with $I_p$ in A, $B_t$ in T, $n_e$ in $\mathrm{m^{-3}}$, $P_{\mathrm{loss}}$ in W
+with $I_p$ in A, $B_t$ in T, $n_e$ in $\mathrm{m^{-3}}$, $P_{\mathrm{aux}}$ in W
 and $\tau_E$ in s. Relative to IPB98(y,2) the current dependence is much
 weaker ($I_p^{0.57}$ vs $I_p^{0.93}$) and the toroidal-field dependence much
 stronger ($B_t^{1.08}$ vs $B_t^{0.15}$), the qualitative spherical-tokamak
 trend; the density and heating-power exponents ($n_e^{0.44}$,
-$P_{\mathrm{loss}}^{-0.73}$) are of the same order as the conventional-aspect
+$P_{\mathrm{aux}}^{-0.73}$) are of the same order as the conventional-aspect
 scalings. This is an ST-appropriate fit ($A\sim1.3$ to $1.5$ dataset).
 Selecting *Kaye NSTX H-mode* uses it for both channels
 ($\tau_{E,e}=\tau_{E,i}$).
@@ -1530,7 +1531,7 @@ References: Helander, *Phys. Plasmas* **7** (2000) 3999; Hinton, Wiley *et al.*,
 
 ### Known limitation: the $P$ fed into IPB98(y,2) / Kaye NSTX
 
-These three scalings use $P_{\mathrm{loss}} = \sum_j P_{\mathrm{useful},j} +
+These three scalings use $P_{\mathrm{aux}} = \sum_j P_{\mathrm{useful},j} +
 P_{\mathrm{aux},e} + P_{\mathrm{aux},i}$ (sec. above) — NBI power *after*
 shine-through, first-orbit loss **and** charge-exchange loss are all
 subtracted. The experimental databases these scalings were fit to use a
@@ -2137,6 +2138,83 @@ panel, and as a slice of the Fusion tab's pie chart.
 - The radial volume weighting uses the model's elliptical flux-surface
 	approximation and does not yet solve a 2D equilibrium.
 
+## First-wall neutron flux (HOT-JASS web app)
+
+The Fusion tab of HOT-JASS turns the neutron yield into a neutron flux on the first
+wall. This is post-processing of the solved operating point (functions
+`first_wall_area_m2` and `wall_neutron_profile` in the HOT-JASS `app.py`, not part of
+the `hotjass` package); it does not feed back into the balances.
+
+### First wall and average flux
+
+The first wall is the Miller plasma boundary (as in the Geometry plot)
+
+$$
+R(\theta) = R_0 + a\cos(\theta + \arcsin\delta\,\sin\theta),\qquad
+Z(\theta) = \kappa a\sin\theta
+$$
+
+offset outward along its normal by a gap $g$ ($g = a/2$ in the app). On the inboard side
+the wall cannot sit inside the centre post (when its radius is set) or the axis, so $R$
+is clipped there and that part of the wall is a flat cylinder. The wall area is the
+surface of revolution $S_{FW} = 2\pi\oint R\,dl$, and the average flux is
+
+$$
+\langle\Gamma_n\rangle = Y_n / S_{FW}\quad[\mathrm{n\,cm^{-2}\,s^{-1}}],
+$$
+
+shown in total and split into thermal and beam-plasma (beam-target + beam-beam)
+neutrons. All neutrons are counted (14 MeV and 2.45 MeV).
+
+### Poloidal profile of the wall loading
+
+The source density $S_n(\rho)$ [n m$^{-3}$ s$^{-1}$] is taken from the solver's thermal and
+beam-target fusion-power profiles, each scaled to its own neutron yield (beam-beam takes
+the beam-target shape), and is uniform on each Miller flux surface. With profile-corrected
+0-D off it is uniform. The plasma is divided into cells over $(\rho, \theta, \varphi)$ around
+the whole torus; each wall point $\mathbf x_w$ (outward normal $\hat{\mathbf n}$) collects the
+uncollided point-kernel contributions
+
+$$
+J_n(\mathbf x_w) = \sum_{\text{cells}} \frac{S_n\,dV\,(\hat{\mathbf n}\cdot\hat{\mathbf d})}{4\pi d^2},
+\qquad
+\phi_n(\mathbf x_w) = \sum_{\text{cells}} \frac{S_n\,dV}{4\pi d^2},
+$$
+
+with $d$ the distance and $\hat{\mathbf d}$ the unit vector from the cell to the wall point:
+$J_n$ is the wall loading (current through the wall), $\phi_n$ the scalar flux. The plasma
+is transparent to 14 MeV neutrons, so there is no attenuation.
+
+- **Centre column:** lines of sight that cross the cylinder at the inboard wall radius are blocked.
+- **First crossing:** the torus is not convex, so a near-tangential ray can leave the vessel and
+  re-enter. Each ray is checked at points along its path and dropped if it leaves the vessel first.
+  Without this test the total through the wall came out 0.7--1.4 % above $Y_n$.
+- **Check:** $\oint J_n\,dA = Y_n$ is reported; it holds to within 0.5 % on all presets.
+- **Symmetry:** up-down and toroidal, so wall points are computed on the upper half only.
+
+The Fusion tab shows the wall coloured by $J_n$ around the plasma (shaded by $S_n$), $J_n$ and
+$\phi_n$ against the poloidal angle about $(R_0, 0)$, the outboard and inboard values, the
+maximum and minimum along the wall with their angles, and the peaking factors
+
+$$
+f_{out} = J_n^{\text{outboard}}/\langle J_n\rangle,\qquad
+f_{in} = J_n^{\text{inboard}}/\langle J_n\rangle,\qquad
+f_{max} = J_n^{\max}/\langle J_n\rangle .
+$$
+
+At the PONTE preset, $f_{out} = 1.36$ and $f_{in} = 1.14$, with the minimum near the top
+(about $0.7\langle J_n\rangle$); the scalar flux is highest on the centre post, which sees the
+source from all around the torus.
+
+### Limitations
+
+- Uncollided neutrons only: no scattering back from the blanket and structure, which in reality
+  adds roughly 20--50 % (needs a transport code such as MCNP or OpenMC).
+- No Shafranov shift: a real outward shift raises the outboard and lowers the inboard values.
+- The beam-target source is uniform on each flux surface: the poloidal asymmetry of trapped fast
+  ions and the small forward anisotropy of beam-target neutrons are neglected.
+- The gap is uniform; ports, limiters and the divertor are not represented.
+
 ## Density scan
 
 The Plasma tab defines the requested scan range with `n_e_min` and `n_e_max`. The Results tab reports the physically valid interval separately. Points below the HotJass charge-neutrality feasibility limit are not assigned physical output values and are omitted from plots.
@@ -2272,7 +2350,7 @@ validity, not a genuine disagreement in overlapping-validity physics.
 
 ### Takeaway
 
-Fixing the $P_{\mathrm{loss}}$ definition (sec. "Known limitation" above) is
+Fixing the $P_{\mathrm{aux}}$ definition (sec. "Known limitation" above) is
 a real, worthwhile correction (~10-20% on $\tau_E$), but the choice of
 *which* scaling to use dominates the total uncertainty by an order of
 magnitude. Neither should be read as validated for a device far outside
